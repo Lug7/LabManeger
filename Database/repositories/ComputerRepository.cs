@@ -1,3 +1,4 @@
+using LabManager.Database;
 using LabManager.Models;
 using Microsoft.Data.Sqlite;
 
@@ -8,34 +9,53 @@ class ComputerRepository
    private DatabaseConfig databaseConfig;
 
     public ComputerRepository(DatabaseConfig databaseConfig) => this.databaseConfig = databaseConfig;
-  
 
-    public List<Computer> GetAll()
+
+    public List<Computer> All
     {
-        var Computers = new List<Computer>();
+        get
+        {
+            var Computers = new List<Computer>();
 
+            var connection = new SqliteConnection(databaseConfig.ConnectionString);
+            connection.Open();
+
+            var command = connection.CreateCommand();
+
+            command.CommandText = "SELECT * FROM Computers;";
+
+            var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                var computer = new Computer(
+                    reader.GetInt32(0),
+                    reader.GetString(1),
+                    reader.GetString(2)
+                );
+
+                Computers.Add(computer);
+            }
+            connection.Close();
+
+            return Computers;
+
+        }
+    }
+
+ 
+public void Save(Computer computer)
+{
         var connection = new SqliteConnection(databaseConfig.ConnectionString);
-        connection.Open();
+       connection.Open();
 
         var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO Computers VALUES($id, $ram, $processor);"; 
+        command.Parameters.AddWithValue("$id",computer.Id);
+        command.Parameters.AddWithValue("$ram",computer.Ram);
+        command.Parameters.AddWithValue("$processor", computer.Processor);
 
-        command.CommandText = "SELECT * FROM Computers;";
-        
-        var reader = command.ExecuteReader();
-
-        while (reader.Read())
-        {   
-            var computer = new Computer(
-                reader.GetInt32(0), 
-                reader.GetString(1), 
-                reader.GetString(2)
-            );
-
-            Computers.Add(computer);            
-        }
+        command.ExecuteNonQuery();
         connection.Close();
-
-        return Computers;
-    
-    }
+}
 }
