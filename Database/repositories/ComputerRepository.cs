@@ -44,7 +44,7 @@ class ComputerRepository
     }
 
  
-public void Save(Computer computer)
+public Computer Save(Computer computer)
 {
         var connection = new SqliteConnection(databaseConfig.ConnectionString);
        connection.Open();
@@ -57,5 +57,6 @@ public void Save(Computer computer)
 
         command.ExecuteNonQuery();
         connection.Close();
+        return computer;
 }
 }
