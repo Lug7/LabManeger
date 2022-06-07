@@ -65,22 +65,19 @@ public Computer Save(Computer computer)
         connection.Open();
 
         var command = connection.CreateCommand();
-        command.CommandText = @"SELECT * FROM Computers WHERE id = $id;";
+        command.CommandText = @"SELECT * FROM Computers WHERE id = $id";
         command.Parameters.AddWithValue("$id",id);
 
         var reader = command.ExecuteReader();
 
         reader.Read();
-        var computer = new Computer(
-            reader.GetInt32(0), 
-            reader.GetString(1), 
-            reader.GetString(2)
-        );           
-
+        var computer = readerToComputer(reader);
         connection.Close();
 
         return computer;
+
     }
+
      public void Delete(int id){
         var connection = new SqliteConnection(databaseConfig.ConnectionString);
         connection.Open();
@@ -116,5 +113,32 @@ public Computer Save(Computer computer)
             command.ExecuteNonQuery();
             connection.Close();
     }
+
+    public bool existsById(int id)
+    {
+         var connection = new SqliteConnection(databaseConfig.ConnectionString);
+        connection.Open();
+         
+         var command = connection.CreateCommand();
+
+        command.CommandText = "Select count(id) FROM Computers WHERE id=$id";
+        command.Parameters.AddWithValue("$id",id);
+
+        bool result = Convert.ToBoolean(command.ExecuteScalar());
+
+        return result;
+       
+    }
+
+private Computer readerToComputer(SqliteDataReader reader)
+{
+    var computer = new Computer(
+             reader.GetInt32(0), 
+            reader.GetString(1), 
+            reader.GetString(2)
+    );
+
+    return computer;
 }
 
+}
